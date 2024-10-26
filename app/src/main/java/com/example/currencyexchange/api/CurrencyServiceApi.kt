@@ -9,6 +9,6 @@ interface CurrencyServiceApi {
     @GET("latest")
     suspend fun getExchangeRates(
         @Query("access_key") apiKey: String,
-        @Query("base") baseCurrency: String = "USD"
+        @Query("base") baseCurrency: String = "EUR"
     ): Response<ExchangeRatesResponse>
 }
