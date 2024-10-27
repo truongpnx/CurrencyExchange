@@ -1,3 +1,7 @@
 <resources>
-    <string name="app_name">CurrencyExchange</string>
+    <string name="app_name" translatable="false">Currency Exchange</string>
+    <string name="amount_hint">Exchange amount</string>
+    <string name="result_hint">Exchanged result</string>
+    <string name="date_title">Exchange rates on</string>
+    <string name="target_currency">Set target exchange currency</string>
 </resources>

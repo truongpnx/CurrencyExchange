@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="amount_hint">Lượng tiền quy đổi</string>
+    <string name="result_hint">Kết quả quy đổi</string>
+    <string name="date_title">Tỉ lệ quy đổi ngày</string>
+    <string name="target_currency">Đặt đơn vị quy đổi</string>
+</resources>
