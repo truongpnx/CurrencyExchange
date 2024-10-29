@@ -22,7 +22,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.FragmentContainerView
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
 import com.example.currencyexchange.dialog.ChooseCurrencyListDialog
 import com.example.currencyexchange.fragments.CurrencyResultListFragment
 import com.example.currencyexchange.helper.NetworkHelper
@@ -34,7 +33,6 @@ import com.example.currencyexchange.view_models.CurrencyConverterViewModel
 import com.example.currencyexchange.view_models.ExchangeRateResponseViewModel
 import com.example.currencyexchange.view_models.SymbolsViewModel
 import com.google.gson.Gson
-import kotlinx.coroutines.launch
 import java.io.IOException
 import java.math.BigDecimal
 import java.util.Locale
@@ -52,9 +50,11 @@ class CurrencyExchangeActivity : AppCompatActivity() {
     private lateinit var currencyResultListFragment: CurrencyResultListFragment
     private lateinit var searchView: SearchView
     private lateinit var btnDate: Button
+    private lateinit var btnSourceCurrency: Button
+    private lateinit var btnTargetCurrency: Button
 
-    private lateinit var sourceCurrency: String
-    private lateinit var targetCurrency: String
+    private var sourceCurrency = MutableLiveData<String>()
+    private var targetCurrency = MutableLiveData<String>()
     private var amount = MutableLiveData<BigDecimal>().apply { value = BigDecimal.ZERO }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -70,8 +70,41 @@ class CurrencyExchangeActivity : AppCompatActivity() {
         currencyResultListFragment =
             findViewById<FragmentContainerView>(R.id.fragmentContainerView).getFragment()
 
-        sourceCurrency = getSavedSourceCurrency()
-        targetCurrency = getSavedTargetCurrency()
+        //region data binding
+        exchangeRatesViewModel.exchangeRatesResponse.observe(this) {
+            it?.let {
+                onRatesResponseUpdate(it)
+            }
+        }
+
+        symbolsViewModel.symbolsResponse.observe(this) {
+            it?.let {
+                onSymbolsResponseUpdate(it)
+            }
+        }
+
+        amount.observe(this) {
+            onUpdateAmount(it)
+        }
+
+        sourceCurrency.observe(this) {
+            ("(" + it + ") " + symbolsViewModel.symbolsResponse.value?.symbols?.get(it)).also {res ->
+                btnSourceCurrency.text = res
+            }
+            saveSourceCurrency()
+            onUpdateAmount(amount.value ?: BigDecimal.ZERO)
+        }
+
+        targetCurrency.observe(this) {
+            ("(" + it + ") " + symbolsViewModel.symbolsResponse.value?.symbols?.get(it)).also { res ->
+                btnTargetCurrency.text = res
+            }
+            saveTargetCurrency()
+            onUpdateAmount(amount.value ?: BigDecimal.ZERO)
+        }
+
+
+        //endregion
 
         //region search view event
 
@@ -95,7 +128,7 @@ class CurrencyExchangeActivity : AppCompatActivity() {
                 val results = ratesToResults(
                     exchangeRatesViewModel.exchangeRatesResponse.value?.rates,
                     amount.value ?: BigDecimal.ZERO,
-                    sourceCurrency
+                    sourceCurrency.value!!
                 )
                 updateExchangedResults(results)
                 return true
@@ -119,12 +152,20 @@ class CurrencyExchangeActivity : AppCompatActivity() {
         btnDate = findViewById(R.id.btnDate)
         btnDate.setOnClickListener {
             showDatePicker { year, month, day ->
-                val date = String.format(Locale.UK, "%04d-%02d-%02d", year, month + 1, day)
-                getDateRates(date)
+                val calendar = Calendar.getInstance()
+                if (year == calendar.get(Calendar.YEAR) && month == calendar.get(Calendar.MONTH) && day == calendar.get(
+                        Calendar.DAY_OF_MONTH
+                    )
+                ) {
+                    getLatestRates()
+                } else {
+                    val date = String.format(Locale.UK, "%04d-%02d-%02d", year, month + 1, day)
+                    getDateRates(date)
+                }
             }
         }
 
-        val btnSourceCurrency = findViewById<Button>(R.id.btnSourceCurrency)
+        btnSourceCurrency = findViewById(R.id.btnSourceCurrency)
         btnSourceCurrency.setOnClickListener {
             val dialog = ChooseCurrencyListDialog(
                 this,
@@ -132,12 +173,11 @@ class CurrencyExchangeActivity : AppCompatActivity() {
             )
             dialog.showDialog(object : ChooseCurrencyListDialog.OnItemSelectedListener {
                 override fun onItemSelected(key: String, value: String) {
-                    changeSourceCurrency(key)
-                    "($key) $value".also { btnSourceCurrency.text = it }
+                    sourceCurrency.value = key
                 }
             })
         }
-        val btnTargetCurrency = findViewById<Button>(R.id.btnTargetCurrency)
+        btnTargetCurrency = findViewById(R.id.btnTargetCurrency)
         btnTargetCurrency.setOnClickListener {
             val dialog = ChooseCurrencyListDialog(
                 this,
@@ -145,23 +185,19 @@ class CurrencyExchangeActivity : AppCompatActivity() {
             )
             dialog.showDialog(object : ChooseCurrencyListDialog.OnItemSelectedListener {
                 override fun onItemSelected(key: String, value: String) {
-                    changeTargetCurrency(key)
-                    "($key) $value".also { btnTargetCurrency.text = it }
+                    targetCurrency.value = key
                 }
             })
         }
 
         findViewById<ImageButton>(R.id.imBtnSwap).setOnClickListener {
-            swapCurrencies()
-
-            val tempText = btnSourceCurrency.text
-            btnSourceCurrency.text = btnTargetCurrency.text
-            btnTargetCurrency.text = tempText
-
             val targetString = findViewById<TextView>(R.id.resultTextView).text.toString()
-            amount.value = StringHelper.currencyToBigDecimal(targetString)
-            val sourceString = StringHelper.formatCurrency(amount.value!!).replace(",", "")
+            val newAmount = StringHelper.currencyToBigDecimal(targetString)
+            val sourceString = StringHelper.formatCurrency(newAmount).replace(",", "")
             findViewById<EditText>(R.id.editTextAmount).setText(sourceString)
+
+            swapCurrencies()
+            amount.value = newAmount
         }
         //endregion
 
@@ -222,44 +258,29 @@ class CurrencyExchangeActivity : AppCompatActivity() {
         })
         //endregion
 
-        //region data binding
-        exchangeRatesViewModel.exchangeRatesResponse.observe(this) {
-            it?.let {
-                onRatesResponseUpdate(it)
-            }
-        }
 
-        symbolsViewModel.symbolsResponse.observe(this) {
-            it?.let {
-                onSymbolsResponseUpdate(it)
-            }
-        }
-
-        amount.observe(this) {
-            onUpdateAmount(it)
-        }
-        //endregion
     }
 
     override fun onStart() {
         super.onStart()
+        sourceCurrency.value = getSavedSourceCurrency()
+        targetCurrency.value = getSavedTargetCurrency()
+
+        getStoredRates()
+        getStoredSymbols()
 
         if (!NetworkHelper.isNetworkConnected(this)) {
-            getStoredRates()
-            getStoredSymbols()
             Toast.makeText(
                 this, resources.getString(R.string.turn_on_internet_notify), Toast.LENGTH_LONG
             ).show()
             return
         }
 
-        viewModel.viewModelScope.launch {
-            try {
-                getSymbols()
-                getLatestRates()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+        try {
+            getSymbols()
+            getLatestRates()
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -356,23 +377,36 @@ class CurrencyExchangeActivity : AppCompatActivity() {
 
     private fun updateExchangedResults(results: Map<String, BigDecimal>?) {
         val resultsFiltered =
-            filterResults(results, sourceCurrency, targetCurrency, searchView.query.toString())
+            filterResults(
+                results,
+                sourceCurrency.value!!,
+                targetCurrency.value!!,
+                searchView.query.toString()
+            )
         currencyResultListFragment.setResults(resultsFiltered)
     }
 
     private fun onRatesResponseUpdate(response: ExchangeRatesResponse) {
-        btnDate.text = response.date
-        updateExchangedResults(ratesToResults(response.rates, amount.value!!, sourceCurrency))
+        btnDate.text = StringHelper.timestampToYYYYMMDD(response.timestamp).toString()
+        updateExchangedResults(
+            ratesToResults(
+                response.rates,
+                amount.value!!,
+                sourceCurrency.value!!
+            )
+        )
     }
 
     private fun onUpdateAmount(amount: BigDecimal) {
         val results = ratesToResults(
-            exchangeRatesViewModel.exchangeRatesResponse.value?.rates, amount, sourceCurrency
+            exchangeRatesViewModel.exchangeRatesResponse.value?.rates,
+            amount,
+            sourceCurrency.value!!
         )
         updateExchangedResults(results)
         if (results != null) {
             findViewById<TextView>(R.id.resultTextView).text =
-                StringHelper.formatCurrency(results[targetCurrency] ?: BigDecimal.ZERO)
+                StringHelper.formatCurrency(results[targetCurrency.value] ?: BigDecimal.ZERO)
         }
     }
 
@@ -392,16 +426,16 @@ class CurrencyExchangeActivity : AppCompatActivity() {
     }
 
     private fun onSymbolsResponseUpdate(response: SymbolsResponse) {
-        "($sourceCurrency) ${response.symbols[sourceCurrency]}".also {
+        "(${sourceCurrency.value}) ${response.symbols[sourceCurrency.value]}".also {
             findViewById<Button>(R.id.btnSourceCurrency).text = it
         }
-        "($targetCurrency) ${response.symbols[targetCurrency]}".also {
+        "(${targetCurrency.value}) ${response.symbols[targetCurrency.value]}".also {
             findViewById<Button>(R.id.btnTargetCurrency).text = it
         }
         val results = ratesToResults(
             exchangeRatesViewModel.exchangeRatesResponse.value?.rates,
             amount.value ?: BigDecimal.ZERO,
-            sourceCurrency
+            sourceCurrency.value!!
         )
         updateExchangedResults(results)
     }
@@ -445,31 +479,20 @@ class CurrencyExchangeActivity : AppCompatActivity() {
         datePickerDialog.show()
     }
 
-    private fun changeSourceCurrency(currency: String) {
-        sourceCurrency = currency
-        saveSourceCurrency()
-    }
-
-    private fun changeTargetCurrency(currency: String) {
-        targetCurrency = currency
-        saveTargetCurrency()
-    }
 
     private fun swapCurrencies() {
-        val temp = sourceCurrency
-        sourceCurrency = targetCurrency
-        targetCurrency = temp
-        saveSourceCurrency()
-        saveTargetCurrency()
+        val temp = sourceCurrency.value
+        sourceCurrency.value = targetCurrency.value
+        targetCurrency.value = temp!!
     }
 
     private fun saveSourceCurrency() {
         val sharedPreferences = getSharedPreferences(PREFERENCE_NAME, MODE_PRIVATE)
-        sharedPreferences.edit().putString(SOURCE_CURRENCY, sourceCurrency).apply()
+        sharedPreferences.edit().putString(SOURCE_CURRENCY, sourceCurrency.value).apply()
     }
 
     private fun saveTargetCurrency() {
         val sharedPreferences = getSharedPreferences(PREFERENCE_NAME, MODE_PRIVATE)
-        sharedPreferences.edit().putString(TARGET_CURRENCY, targetCurrency).apply()
+        sharedPreferences.edit().putString(TARGET_CURRENCY, targetCurrency.value).apply()
     }
 }
