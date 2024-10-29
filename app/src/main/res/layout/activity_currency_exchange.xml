@@ -46,7 +46,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"
                 android:contentDescription="@string/date_title"
-                android:text="2024-10-28"
                 tools:ignore="HardcodedText" />
 
         </LinearLayout>

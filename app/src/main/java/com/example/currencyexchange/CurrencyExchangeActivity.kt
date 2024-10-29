@@ -37,6 +37,7 @@ import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import java.io.IOException
 import java.math.BigDecimal
+import java.util.Locale
 
 const val PREFERENCE_NAME = "currency_preferences"
 const val SOURCE_CURRENCY = "source_currency"
@@ -118,7 +119,7 @@ class CurrencyExchangeActivity : AppCompatActivity() {
         btnDate = findViewById(R.id.btnDate)
         btnDate.setOnClickListener {
             showDatePicker { year, month, day ->
-                val date = "$year-${month + 1}-$day"
+                val date = String.format(Locale.UK, "%04d-%02d-%02d", year, month + 1, day)
                 getDateRates(date)
             }
         }
@@ -347,6 +348,8 @@ class CurrencyExchangeActivity : AppCompatActivity() {
                     Toast.LENGTH_SHORT
                 ).show()
                 getStoredRates()
+            } else {
+                exchangeRatesViewModel.setExchangeRatesResponse(it)
             }
         }
     }
