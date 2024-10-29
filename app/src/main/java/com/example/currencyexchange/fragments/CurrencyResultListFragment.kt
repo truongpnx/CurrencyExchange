@@ -13,6 +13,7 @@ import com.example.currencyexchange.databinding.FragmentCurrencyResultBinding
 import com.example.currencyexchange.databinding.FragmentCurrencyResultListBinding
 import com.example.currencyexchange.helper.StringHelper
 import java.io.Serializable
+import java.math.BigDecimal
 
 const val ARG_RESULTS = "exchange_results"
 
@@ -46,7 +47,7 @@ class CurrencyResultListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val recyclerView = view.findViewById<RecyclerView>(R.id.list)
         recyclerView?.layoutManager = LinearLayoutManager(context)
-        val results = arguments?.getSerializable(ARG_RESULTS) as Map<String, Double>?
+        val results = arguments?.getSerializable(ARG_RESULTS) as Map<String, BigDecimal>?
         recyclerView?.adapter = results?.let { CurrencyResultAdapter(it) }
     }
 
@@ -57,7 +58,7 @@ class CurrencyResultListFragment : Fragment() {
         val textViewCurrency = binding.textViewCurrency
     }
 
-    private inner class CurrencyResultAdapter(private val results: Map<String, Double>?) :
+    private inner class CurrencyResultAdapter(private val results: Map<String, BigDecimal>?) :
         RecyclerView.Adapter<ViewHolder>() {
 
 
@@ -76,15 +77,15 @@ class CurrencyResultListFragment : Fragment() {
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val key = results?.keys?.elementAt(position)
             if (key != null) {
-                Log.d("CurrencyResultAdapter", StringHelper.formatCurrency(results?.getValue(key)?: 0.0))
-                holder.textViewCurrencyResult.text = StringHelper.formatCurrency(results?.getValue(key)?: 0.0)
+                holder.textViewCurrencyResult.text =
+                    StringHelper.formatCurrency(results?.getValue(key) ?: BigDecimal.ZERO)
                 holder.textViewCurrency.text = key
 
             }
         }
 
         override fun getItemCount(): Int {
-            if (results == null){
+            if (results == null) {
                 return 0
             }
             return results.size
@@ -92,13 +93,13 @@ class CurrencyResultListFragment : Fragment() {
     }
 
 
-    fun setResults(results: Map<String, Double>?) {
+    fun setResults(results: Map<String, BigDecimal>?) {
         val recyclerView = view?.findViewById<RecyclerView>(R.id.list)
         recyclerView?.adapter = CurrencyResultAdapter(results)
     }
 
     companion object {
-        fun newInstance(results: Map<String, Double>?): CurrencyResultListFragment =
+        fun newInstance(results: Map<String, BigDecimal>?): CurrencyResultListFragment =
             CurrencyResultListFragment().apply {
                 arguments = Bundle().apply {
                     putSerializable(ARG_RESULTS, results as Serializable)
