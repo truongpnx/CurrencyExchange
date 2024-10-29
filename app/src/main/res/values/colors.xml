@@ -9,6 +9,8 @@
     <color name="white">#FFFFFFFF</color>
     <color name="yellow_200A20">#33FFE391</color>
     <color name="gray_200">#DBDBDB</color>
+    <color name="gray_500">#808080</color>
     <color name="gray_700">#2C2C2C</color>
+    <color name="black_A30">#4D000000</color>
     <color name="transparent">#00000000</color>">
 </resources>

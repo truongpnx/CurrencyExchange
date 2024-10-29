@@ -4,4 +4,10 @@
     <string name="result_hint">Exchanged result</string>
     <string name="date_title">Exchange rates on</string>
     <string name="target_currency">Set target exchange currency</string>
+    <string name="search_currency">Search currency</string>
+    <string name="show_currencies">Show currencies</string>">
+    <string name="hide_currencies">Hide currencies</string>">
+    <string name="currency_not_found">Currency not found</string>">
+    <string name="fetch_exchange_rates_failed_notify">Failed to fetch exchange rates</string>
+    <string name="turn_on_internet_notify">Please turn on internet for latest exchange data</string>
 </resources>

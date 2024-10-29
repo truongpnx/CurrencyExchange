@@ -4,4 +4,10 @@
     <string name="result_hint">Kết quả quy đổi</string>
     <string name="date_title">Tỉ lệ quy đổi ngày</string>
     <string name="target_currency">Đặt đơn vị quy đổi</string>
+    <string name="search_currency">Tìm đơn vị</string>
+    <string name="show_currencies">Hiển thị đơn vị</string>">
+    <string name="hide_currencies">Ẩn đơn vị</string>">
+    <string name="currency_not_found">Đơn vị tiền không tồn tại</string>">
+    <string name="fetch_exchange_rates_failed_notify">Không thể tải dữ liệu quy đổi</string>
+    <string name="turn_on_internet_notify">Vui lòng bật kết nối mạng để tải dữ liệu quy đổi mới nhất</string>
 </resources>

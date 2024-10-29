@@ -10,7 +10,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.example.currencyexchange.R
 import com.example.currencyexchange.databinding.FragmentCurrencyResultBinding
-import com.example.currencyexchange.databinding.FragmentCurrencyResultListDialogBinding
+import com.example.currencyexchange.databinding.FragmentCurrencyResultListBinding
 import com.example.currencyexchange.helper.StringHelper
 import java.io.Serializable
 
@@ -27,7 +27,7 @@ const val ARG_RESULTS = "exchange_results"
  */
 class CurrencyResultListFragment : Fragment() {
 
-    private var _binding: FragmentCurrencyResultListDialogBinding? = null
+    private var _binding: FragmentCurrencyResultListBinding? = null
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -39,7 +39,7 @@ class CurrencyResultListFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
 
-        _binding = FragmentCurrencyResultListDialogBinding.inflate(inflater, container, false)
+        _binding = FragmentCurrencyResultListBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -76,6 +76,7 @@ class CurrencyResultListFragment : Fragment() {
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val key = results?.keys?.elementAt(position)
             if (key != null) {
+                Log.d("CurrencyResultAdapter", StringHelper.formatCurrency(results?.getValue(key)?: 0.0))
                 holder.textViewCurrencyResult.text = StringHelper.formatCurrency(results?.getValue(key)?: 0.0)
                 holder.textViewCurrency.text = key
 
@@ -91,11 +92,9 @@ class CurrencyResultListFragment : Fragment() {
     }
 
 
-    fun setResults(results: Map<String, Double>) {
+    fun setResults(results: Map<String, Double>?) {
         val recyclerView = view?.findViewById<RecyclerView>(R.id.list)
         recyclerView?.adapter = CurrencyResultAdapter(results)
-        Log.d("CurrencyResultListFragment", "recycleView: $recyclerView")
-        Log.d("CurrencyResultListFragment", "adapter: ${recyclerView?.adapter}")
     }
 
     companion object {

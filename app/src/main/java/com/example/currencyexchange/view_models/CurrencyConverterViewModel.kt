@@ -7,6 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.currencyexchange.BuildConfig
 import com.example.currencyexchange.helper.SaveHelper
 import com.example.currencyexchange.instances.RetrofitInstance
+import com.example.currencyexchange.models.ExchangeRatesResponse
+import com.example.currencyexchange.models.SymbolsResponse
 import kotlinx.coroutines.launch
 
 class CurrencyConverterViewModel : ViewModel() {
@@ -15,13 +17,13 @@ class CurrencyConverterViewModel : ViewModel() {
     fun fetchExchangeRates(
         baseCurrency: String? = null,
         symbols: String? = null,
-        onResult: (Map<String, Double>?) -> Unit
+        onResult: (ExchangeRatesResponse?) -> Unit
     ) {
         viewModelScope.launch {
             try {
                 val response = RetrofitInstance.api.getExchangeRates(apiKey, baseCurrency, symbols)
                 if (response.isSuccessful) {
-                    onResult(response.body()?.rates)
+                    onResult(response.body())
                 } else {
                     onResult(null)
                 }
@@ -32,12 +34,12 @@ class CurrencyConverterViewModel : ViewModel() {
         }
     }
 
-    fun fetchAllSymbols(onResult: (Map<String, String>?) -> Unit) {
+    fun fetchAllSymbols(onResult: (SymbolsResponse?) -> Unit) {
         viewModelScope.launch {
             try {
                 val response = RetrofitInstance.api.getAllSymbols(apiKey)
                 if (response.isSuccessful) {
-                    onResult(response.body()?.symbols)
+                    onResult(response.body())
                 } else {
                     onResult(null)
                 }
@@ -52,7 +54,7 @@ class CurrencyConverterViewModel : ViewModel() {
         date: String,
         baseCurrency: String? = null,
         symbols: String? = null,
-        onResult: (Map<String, Double>?) -> Unit
+        onResult: (ExchangeRatesResponse?) -> Unit
     ) {
         viewModelScope.launch {
 
@@ -60,7 +62,7 @@ class CurrencyConverterViewModel : ViewModel() {
                 val response =
                     RetrofitInstance.api.getHistoricalRates(date, apiKey, baseCurrency, symbols)
                 if (response.isSuccessful) {
-                    onResult(response.body()?.rates)
+                    onResult(response.body())
                 } else {
                     onResult(null)
                 }
