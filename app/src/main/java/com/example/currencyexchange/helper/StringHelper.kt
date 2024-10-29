@@ -1,16 +1,16 @@
 package com.example.currencyexchange.helper
 
-import java.text.NumberFormat
+import java.math.RoundingMode
+import java.text.DecimalFormat
 import java.time.Instant
 import java.time.LocalDate
-import java.util.Locale
-import kotlin.math.floor
 
 object StringHelper {
 
     fun formatCurrency(amount: Double): String {
-        val numberFormat = NumberFormat.getCurrencyInstance(Locale.US)
-        return numberFormat.format(amount).replace("$", "")
+        val decimalFormat = DecimalFormat("#,##0.######")
+        decimalFormat.roundingMode = RoundingMode.HALF_UP
+        return decimalFormat.format(amount)
     }
 
     fun timestampToYYYYMMDD(timestamp: Long): LocalDate {
