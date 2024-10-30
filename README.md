@@ -81,3 +81,7 @@ API_KEY=your_api_key
  - Select the base currency from the dialog.
  - Select the target currency and input an amount.
  - View the converted exchange rate in real-time.
+
+## Demo
+Watch the demo video to see Currency Exchanger in action:
+[Video demo](https://drive.google.com/file/d/1pyYFyuD4_9yo34Nv6tWC66HqEj7QE_RZ/view?usp=drive_link)
