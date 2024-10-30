@@ -2,6 +2,7 @@ package com.example.currencyexchange
 
 import android.app.DatePickerDialog
 import android.icu.util.Calendar
+import android.icu.util.TimeZone
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -35,7 +36,6 @@ import com.example.currencyexchange.view_models.SymbolsViewModel
 import com.google.gson.Gson
 import java.io.IOException
 import java.math.BigDecimal
-import java.util.Locale
 
 const val PREFERENCE_NAME = "currency_preferences"
 const val SOURCE_CURRENCY = "source_currency"
@@ -88,7 +88,7 @@ class CurrencyExchangeActivity : AppCompatActivity() {
         }
 
         sourceCurrency.observe(this) {
-            ("(" + it + ") " + symbolsViewModel.symbolsResponse.value?.symbols?.get(it)).also {res ->
+            ("(" + it + ") " + symbolsViewModel.symbolsResponse.value?.symbols?.get(it)).also { res ->
                 btnSourceCurrency.text = res
             }
             saveSourceCurrency()
@@ -152,14 +152,14 @@ class CurrencyExchangeActivity : AppCompatActivity() {
         btnDate = findViewById(R.id.btnDate)
         btnDate.setOnClickListener {
             showDatePicker { year, month, day ->
-                val calendar = Calendar.getInstance()
+                val calendar = Calendar.getInstance(TimeZone.GMT_ZONE)
                 if (year == calendar.get(Calendar.YEAR) && month == calendar.get(Calendar.MONTH) && day == calendar.get(
                         Calendar.DAY_OF_MONTH
                     )
                 ) {
                     getLatestRates()
                 } else {
-                    val date = String.format(Locale.UK, "%04d-%02d-%02d", year, month + 1, day)
+                    val date = StringHelper.convertToGMT(year, month + 1, day)
                     getDateRates(date)
                 }
             }
@@ -387,14 +387,10 @@ class CurrencyExchangeActivity : AppCompatActivity() {
     }
 
     private fun onRatesResponseUpdate(response: ExchangeRatesResponse) {
-        btnDate.text = StringHelper.timestampToYYYYMMDD(response.timestamp).toString()
-        updateExchangedResults(
-            ratesToResults(
-                response.rates,
-                amount.value!!,
-                sourceCurrency.value!!
-            )
-        )
+        btnDate.text = StringHelper.timestampToYYYYMMDD(response.timestamp * 1000)
+        val results = ratesToResults(response.rates, amount.value!!, sourceCurrency.value!!)
+        updateExchangedResults(results)
+        findViewById<TextView>(R.id.resultTextView).text = StringHelper.formatCurrency(results?.get(targetCurrency.value) ?: BigDecimal.ZERO)
     }
 
     private fun onUpdateAmount(amount: BigDecimal) {
@@ -464,7 +460,7 @@ class CurrencyExchangeActivity : AppCompatActivity() {
     }
 
     private fun showDatePicker(onDateSelected: (year: Int, month: Int, day: Int) -> Unit) {
-        val calendar = Calendar.getInstance()
+        val calendar = Calendar.getInstance(TimeZone.GMT_ZONE)
         val year = calendar.get(Calendar.YEAR)
         val month = calendar.get(Calendar.MONTH)
         val day = calendar.get(Calendar.DAY_OF_MONTH)

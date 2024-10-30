@@ -5,8 +5,12 @@ import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.time.Instant
-import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import java.util.Locale
+
 
 object StringHelper {
 
@@ -21,10 +25,11 @@ object StringHelper {
         return decimalFormat.format(amount)
     }
 
-    fun timestampToYYYYMMDD(timestamp: Long): LocalDate {
-
-        return Instant.ofEpochMilli(timestamp * 1000).atZone(java.time.ZoneId.systemDefault())
-            .toLocalDate()
+    fun timestampToYYYYMMDD(timestamp: Long): String {
+        val instant = Instant.ofEpochMilli(timestamp)
+        val localDateTime = LocalDateTime.ofInstant(instant, ZoneOffset.UTC)
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        return localDateTime.format(formatter)
     }
 
     fun currencyToDouble(currency: String): Double {
@@ -33,5 +38,23 @@ object StringHelper {
 
     fun currencyToBigDecimal(currency: String): BigDecimal {
         return currency.replace(",", "").toBigDecimal()
+    }
+
+    fun convertToGMT(year: Int, month: Int, dayOfMonth: Int): String {
+        // Create a LocalDateTime at the start of the day in the system default time zone
+        val localDateTime = LocalDateTime.of(year, month, dayOfMonth, 23, 59)
+
+
+        // Convert to ZonedDateTime in the system default time zone
+        val systemZoneDateTime = localDateTime.atZone(ZoneId.systemDefault())
+
+
+        // Convert to GMT (UTC) time zone
+        val gmtDateTime = systemZoneDateTime.withZoneSameInstant(ZoneOffset.UTC)
+
+
+        // Format to YYYY-MM-DD
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        return gmtDateTime.format(formatter)
     }
 }

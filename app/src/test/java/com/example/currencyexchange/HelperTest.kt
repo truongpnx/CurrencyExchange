@@ -11,23 +11,14 @@ import java.time.LocalDate
 class HelperTest {
     @Test
     fun testTimestampToYYYYMMDD_CorrectFormat() {
-        val timestamp: Long = 1730021825
-        val expectedDate = LocalDate.of(2024, 10, 27)
+        val timestamp: Long = 1730245827
+        val expectedDate = LocalDate.of(2024, 10, 29).toString()
 
-        val resultDate = timestampToYYYYMMDD(timestamp)
-
-        assertEquals(expectedDate, resultDate)
-    }
-
-    @Test
-    fun testTimestampToYYYYMMDD_CorrectLocalDate() {
-        val timestamp: Long = 1730070783
-        val expectedDate = LocalDate.of(2024, 10, 28)
-
-        val resultDate = timestampToYYYYMMDD(timestamp)
+        val resultDate = timestampToYYYYMMDD(timestamp*1000)
 
         assertEquals(expectedDate, resultDate)
     }
+
 
     @Test
     fun testFormatCurrency_CorrectFormat() {
