@@ -2,6 +2,13 @@
 
 Currency Exchanger is an Android application designed to convert currencies by fetching the latest exchange rates from [Exchange Rates API](https://exchangeratesapi.io/). The project is developed in Kotlin and utilizes Retrofit for networking.
 
+**`Release APK`**: [app/release/app-release.apk](app\release\app-release.apk)
+
+
+## Demo
+Watch the demo video to see Currency Exchanger in action:
+[Video demo](https://drive.google.com/file/d/1pyYFyuD4_9yo34Nv6tWC66HqEj7QE_RZ/view?usp=drive_link)
+
 ## Project Structure
 The project is organized into several directories for a modular, scalable design.
 ```graphql
@@ -70,7 +77,7 @@ git clone https://github.com/truongpnx/CurrencyExchange.git
 
 2. Obtain an API key from exchangeratesapi.io and add it to your Retrofit instance or as a header in the API calls.
 
-Navigate to ```app\apikey.properties``` and set your API key:
+Navigate to ```app/apikey.properties``` and set your API key:
 ```properties
 API_KEY=your_api_key
 ```
@@ -81,7 +88,3 @@ API_KEY=your_api_key
  - Select the base currency from the dialog.
  - Select the target currency and input an amount.
  - View the converted exchange rate in real-time.
-
-## Demo
-Watch the demo video to see Currency Exchanger in action:
-[Video demo](https://drive.google.com/file/d/1pyYFyuD4_9yo34Nv6tWC66HqEj7QE_RZ/view?usp=drive_link)
